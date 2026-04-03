@@ -4,17 +4,16 @@ import random
 import string
 import os
 
-# Lê o mesmo domínio configurado no app.py
 DOMAIN = os.getenv("DOMAIN", "http://localhost:8000")
 
 def get_db():
-    return sqlite3.connect('qrcodes.db')
+    os.makedirs("dados", exist_ok=True)
+    return sqlite3.connect('dados/qrcodes.db')
 
 def generate_id(length=6):
     return ''.join(random.choices(string.ascii_letters + string.digits, k=length))
 
 def format_url(url):
-    # Proteção: Se esquecer de digitar https://, ele coloca automaticamente
     if not url.startswith(('http://', 'https://')):
         return 'https://' + url
     return url

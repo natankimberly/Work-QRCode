@@ -1,7 +1,9 @@
 import sqlite3
+import os
 
 def init_db():
-    conn = sqlite3.connect('qrcodes.db')
+    os.makedirs("dados", exist_ok=True)
+    conn = sqlite3.connect('dados/qrcodes.db')
     cursor = conn.cursor()
     
     cursor.execute('''
@@ -22,4 +24,4 @@ def init_db():
 
 if __name__ == '__main__':
     init_db()
-    print("Banco de dados inicializado/atualizado com sucesso.")
+    print("Banco de dados inicializado/atualizado na pasta 'dados/'.")
