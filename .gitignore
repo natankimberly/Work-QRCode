@@ -1,0 +1,24 @@
+*.db
+*.sqlite3
+qrcodes.db
+
+# Ambientes Virtuais Python
+venv/
+env/
+.venv/
+
+# Arquivos de cache e compilados do Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Variáveis de ambiente (Boa prática de segurança)
+.env
+
+# Arquivos de IDEs (VS Code, PyCharm, etc.)
+.vscode/
+.idea/
+
+# Arquivos de sistema operacional (Windows/Mac)
+Thumbs.db
+.DS_Store
