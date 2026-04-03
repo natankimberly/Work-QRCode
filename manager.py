@@ -46,7 +46,7 @@ def list_links():
         print("Nenhum atalho encontrado.")
     for link in links:
         acessos = link[2] if link[2] is not None else 0
-        print(f"ID: {link[0]} | Acessos: {acessos:03d} -> URL: {link[1]}")
+        print(f"ID: {link[0]} | QRcode: {DOMAIN}/qr/{link[0]} | Acessos: {acessos:03d} -> URL: {link[1]}")
     print("----------------------\n")
 
 def delete_link(link_id):
