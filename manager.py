@@ -2,6 +2,10 @@ import sqlite3
 import sys
 import random
 import string
+import os
+
+# Lê o mesmo domínio configurado no app.py
+DOMAIN = os.getenv("DOMAIN", "http://localhost:8000")
 
 def get_db():
     return sqlite3.connect('qrcodes.db')
@@ -9,16 +13,23 @@ def get_db():
 def generate_id(length=6):
     return ''.join(random.choices(string.ascii_letters + string.digits, k=length))
 
+def format_url(url):
+    # Proteção: Se esquecer de digitar https://, ele coloca automaticamente
+    if not url.startswith(('http://', 'https://')):
+        return 'https://' + url
+    return url
+
 def add_link(url, custom_id=None):
+    url_formatada = format_url(url)
     link_id = custom_id if custom_id else generate_id()
     conn = get_db()
     try:
-        conn.execute("INSERT INTO links (id, url) VALUES (?, ?)", (link_id, url))
+        conn.execute("INSERT INTO links (id, url, clicks) VALUES (?, ?, 0)", (link_id, url_formatada))
         conn.commit()
         print(f"Sucesso! Atalho criado.")
         print(f"ID: {link_id}")
-        print(f"Destino: {url}")
-        print(f"Para ver/imprimir o QR Code acesse: https://seusite.com/qr/{link_id}")
+        print(f"Destino: {url_formatada}")
+        print(f"Acesse o QR Code: {DOMAIN}/qr/{link_id}")
     except sqlite3.IntegrityError:
         print("Erro: Este ID já existe. Escolha outro.")
     finally:
@@ -27,7 +38,7 @@ def add_link(url, custom_id=None):
 def list_links():
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute("SELECT id, url FROM links")
+    cursor.execute("SELECT id, url, clicks FROM links")
     links = cursor.fetchall()
     conn.close()
     
@@ -35,7 +46,8 @@ def list_links():
     if not links:
         print("Nenhum atalho encontrado.")
     for link in links:
-        print(f"ID: {link[0]} -> URL: {link[1]}")
+        acessos = link[2] if link[2] is not None else 0
+        print(f"ID: {link[0]} | Acessos: {acessos:03d} -> URL: {link[1]}")
     print("----------------------\n")
 
 def delete_link(link_id):
@@ -52,13 +64,12 @@ def delete_link(link_id):
 
 def show_help():
     print("\n=== Comandos Disponíveis ===")
-    print("Criar link aleatório:  python manager.py criar <url>")
-    print("Criar link com nome:   python manager.py criar <url> <id>")
-    print("Listar links:          python manager.py listar")
-    print("Excluir link:          python manager.py excluir <id>\n")
+    print("Criar link aleatório:  criar link <url>")
+    print("Criar link com nome:   criar link <url> <id>")
+    print("Listar links:          listar links")
+    print("Excluir link:          excluir link <id>\n")
 
 if __name__ == "__main__":
-    # Se o usuário não digitar nada além de 'python manager.py', mostra a ajuda
     if len(sys.argv) < 2:
         show_help()
         sys.exit(1)
@@ -67,10 +78,9 @@ if __name__ == "__main__":
     
     if acao == "criar":
         if len(sys.argv) < 3:
-            print("Erro: Faltou a URL. Exemplo: python manager.py criar https://google.com")
+            print("Erro: Faltou a URL. Exemplo: criar link google.com")
         else:
             url = sys.argv[2]
-            # Se o usuário digitou uma 4ª palavra, usa como ID personalizado
             custom_id = sys.argv[3] if len(sys.argv) > 3 else None
             add_link(url, custom_id)
             
@@ -79,7 +89,7 @@ if __name__ == "__main__":
         
     elif acao == "excluir":
         if len(sys.argv) < 3:
-            print("Erro: Faltou o ID para excluir. Exemplo: python manager.py excluir promo")
+            print("Erro: Faltou o ID para excluir. Exemplo: excluir link promo")
         else:
             link_id = sys.argv[2]
             delete_link(link_id)
